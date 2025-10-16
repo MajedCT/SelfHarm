@@ -1,11 +1,16 @@
-﻿using System;
+﻿using BoneLib;
 using HarmonyLib;
+using Il2CppJetBrains.Annotations;
 using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Warehouse;
+using LabFusion.Data;
+using LabFusion.Player;
+using LabFusion.Utilities;
 using MelonLoader;
+using SelfHarm.Fusion;
+using System;
 using UnityEngine;
-using BoneLib;
 using Page = BoneLib.BoneMenu.Page;
 
 
@@ -17,13 +22,22 @@ namespace SelfHarm
 
     public class Core : MelonMod
     {
+        public RigManager fusionrig;
+
         public override void OnInitializeMelon()
         {
+            LoadModule();
+            
             base.LoggerInstance.Msg("Initialized.");
             SetupMelonPrefs();
             CreateBonemenu();
         }
-        
+
+        private static void LoadModule()
+        {
+            LabFusion.SDK.Modules.ModuleManager.RegisterModule<MyModule>();
+        }
+
         // full credits to notnotnotswipez for the code, credits to me (MajedCT) for spending an hour adding a toggle button >:D
         public static void AddImpactProperties(RigManager rigManager)
         {
@@ -53,6 +67,7 @@ namespace SelfHarm
         }
         public static void DestroyImpactProperties(RigManager rigManager)
         {
+            
             PhysicsRig physicsRig = rigManager.physicsRig;
             rigManager.health._testVisualDamage = true;
             DataCardReference<SurfaceDataCard> surfaceDataCard = new DataCardReference<SurfaceDataCard>("SLZ.Backlot.SurfaceDataCard.Blood");
@@ -75,13 +90,17 @@ namespace SelfHarm
             
             public static void Postfix()
             {
+                var playerRig = PlayerRefs.Instance.PlayerRigManager;
+                var localRig = RigData.Refs.RigManager;
                 if (isEnabled)
                 {
-                    MelonLogger.Msg("[Self Harm] Mod is already eanbled, Adding impact properties");
-                    AddImpactProperties(PlayerRefs.Instance.PlayerRigManager);
+                    MelonLogger.Msg("[Self Harm] Mod is already enabled, Adding impact properties");
+                    AddImpactProperties(playerRig);
                 }
             }
         }
+
+        
 
         
         
@@ -115,17 +134,19 @@ namespace SelfHarm
 
         public static void OnToggle(bool value)
         {
+            var playerRig = PlayerRefs.Instance.PlayerRigManager;
+            var localRig = RigData.Refs.RigManager;
             isEnabled = value;
 
             if (isEnabled)
             {
                 MelonLogger.Msg("[Self Harm] Mod Enabled, Adding Impact Properties.");
-                AddImpactProperties(PlayerRefs.Instance.PlayerRigManager);
+                AddImpactProperties(playerRig);
             }
             else if(!isEnabled)
             {
                 MelonLogger.Msg("[Self Harm] Mod Disabled, Removing Impact Properties.");
-                DestroyImpactProperties(PlayerRefs.Instance.PlayerRigManager);
+                DestroyImpactProperties(playerRig);
             }
 
             
